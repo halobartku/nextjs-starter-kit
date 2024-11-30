@@ -18,14 +18,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const user = await currentUser()
   
   if (!user) {
-    redirect("/auth/signin")
+    redirect("/sign-in")
   }
 
   const { authorized, message } = await isAuthorized(user.id)
   
   if (!authorized) {
     console.log("Authorization failed:", message)
-    redirect("/auth/unauthorized")
+    redirect("/unauthorized")
   }
 
   return (
