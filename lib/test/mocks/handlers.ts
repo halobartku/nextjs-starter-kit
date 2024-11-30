@@ -36,38 +36,4 @@ export const handlers = [
       })
     )
   }),
-
-  // Project endpoints
-  rest.get(`${config.api.url}/projects`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        success: true,
-        data: [
-          {
-            id: '1',
-            title: 'Test Project',
-            description: 'A test project',
-            status: 'active',
-            createdAt: new Date().toISOString(),
-          },
-        ],
-      })
-    )
-  }),
-
-  rest.post(`${config.api.url}/projects`, async (req, res, ctx) => {
-    const data = await req.json()
-    return res(
-      ctx.status(201),
-      ctx.json({
-        success: true,
-        data: {
-          id: '2',
-          ...data,
-          createdAt: new Date().toISOString(),
-        },
-      })
-    )
-  }),
 ]

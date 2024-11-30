@@ -31,7 +31,7 @@ function customRender(ui: ReactElement, options = {}) {
   return defaultRender(ui, { wrapper: Providers, ...options })
 }
 
-// re-export everything from testing-library
+// re-export everything
 export * from '@testing-library/react'
 
 // override render method
