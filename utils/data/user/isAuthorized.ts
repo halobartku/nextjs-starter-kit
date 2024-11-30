@@ -3,7 +3,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import config from "@/tailwind.config";
+import config from "@/config";
 
 export const isAuthorized = async (
   userId: string
@@ -15,56 +15,63 @@ export const isAuthorized = async (
     };
   }
 
-  const result = (await clerkClient()).users.getUser(userId);
-
-  if (!result) {
-    return {
-      authorized: false,
-      message: "User not found",
-    };
-  }
-
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-      },
-    }
-  );
-
   try {
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .select("*")
-      .eq("user_id", userId);
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
 
-    if (error?.code)
+    if (!user) {
       return {
         authorized: false,
-        message: error.message,
+        message: "User not found",
       };
+    }
 
-    if (data && data[0].status === "active") {
+    const cookieStore = cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const { data: subscription, error } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        return {
+          authorized: false,
+          message: "No active subscription found",
+        };
+      }
+      throw error;
+    }
+
+    if (subscription?.status === "active") {
       return {
         authorized: true,
-        message: "User is subscribed",
+        message: "User has an active subscription",
       };
     }
 
     return {
       authorized: false,
-      message: "User is not subscribed",
+      message: "Subscription is not active",
     };
-  } catch (error: any) {
+  } catch (error) {
+    console.error('Authorization check failed:', error);
     return {
       authorized: false,
-      message: error.message,
+      message: "Failed to verify authorization",
     };
   }
 };

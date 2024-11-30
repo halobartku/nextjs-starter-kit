@@ -1,40 +1,18 @@
+import { authMiddleware } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import config from "./config";
 
-let clerkMiddleware: (arg0: (auth: any, req: any) => any) => { (arg0: any): any; new(): any; }, createRouteMatcher;
-
-if (config.auth.enabled) {
-  try {
-    ({ clerkMiddleware, createRouteMatcher } = require("@clerk/nextjs/server"));
-  } catch (error) {
-    console.warn("Clerk modules not available. Auth will be disabled.");
-    config.auth.enabled = false;
-  }
-}
-
-const isProtectedRoute = config.auth.enabled
-  ? createRouteMatcher(["/dashboard(.*)"])
-  : () => false;
-
-export default function middleware(req: any) {
-  if (config.auth.enabled) {
-    return clerkMiddleware(async (auth, req) => {
-      const resolvedAuth = await auth();
-
-      if (!resolvedAuth.userId && isProtectedRoute(req)) {
-        return resolvedAuth.redirectToSignIn();
-      } else {
-        return NextResponse.next();
-      }
-    })(req);
-  } else {
-    return NextResponse.next();
-  }
-}
-
-export const middlewareConfig = {
-  matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
-  ],
+export default authMiddleware({
+  // Routes that can be accessed while signed out
+  publicRoutes: ["/", "/sign-in(.*)", "/sign-up(.*)", "/api/webhooks(.*)"],
+  // Routes that can always be accessed, and have
+  // no authentication information
+  ignoredRoutes: ["/api/webhooks(.*)"]
+});
+ 
+export const config = {
+  // Protects all routes, including api/trpc.
+  // See https://clerk.com/docs/references/nextjs/auth-middleware
+  // for more information about configuring your Middleware
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"]
 };
