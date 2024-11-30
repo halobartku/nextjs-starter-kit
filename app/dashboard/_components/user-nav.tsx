@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,10 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useClerk, useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 export function UserNav() {
   const { user } = useUser()
   const { signOut } = useClerk()
+  const router = useRouter()
 
   if (!user) return null
 
@@ -32,23 +36,27 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.fullName}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.emailAddresses[0].emailAddress}
+              {user.primaryEmailAddress?.emailAddress}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push('/dashboard/profile')}
+          >
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push('/dashboard/settings')}
+          >
             Settings
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer"
-          onSelect={() => signOut()}
+          onClick={() => signOut(() => router.push('/'))}
         >
           Log out
         </DropdownMenuItem>
