@@ -2,6 +2,8 @@ import { Computer, Network } from 'lucide-react'
 import { FaBusinessTime } from 'react-icons/fa'
 import { OrbitingCirclesComponent } from './orbiting-circles'
 import { TITLE_TAILWIND_CLASS } from '@/utils/constants'
+import { Check } from 'lucide-react';
+import Image from 'next/image';
 
 const features = [
   {
@@ -22,35 +24,48 @@ const features = [
   },
 ]
 
+const benefits = [
+    "Save 10+ hours per week on invoice management",
+    "Get paid 2x faster with automated reminders",
+    "Reduce payment delays by 75%",
+    "Track all client interactions in one place",
+    "Generate professional financial reports instantly",
+    "Seamless integration with popular accounting software"
+];
+
 export default function SideBySide() {
   return (
-    <div className="overflow-hidden ">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2">
-          <div className="lg:pr-8 lg:pt-4">
-            <div className="lg:max-w-lg">
-              <p className={`${TITLE_TAILWIND_CLASS} mt-2 font-semibold tracking-tight dark:text-white text-gray-900`}>
-                Nextjs Starter Kit: A faster way to production
-              </p>
-              <p className="mt-6 leading-8 text-gray-600 dark:text-gray-400">
-                Accelerate your development with this powerful Nextjs Starter Kit
-              </p>
-              <dl className="mt-10 max-w-xl space-y-8 leading-7 text-gray-600 lg:max-w-none">
-                {features.map((feature) => (
-                  <div key={feature.name} className="relative pl-9">
-                    <dt className="inline font-semibold dark:text-gray-100 text-gray-900">
-                      <feature.icon className="absolute left-1 top-1 h-5 w-5" aria-hidden="true" />
-                      {feature.name}
-                    </dt>{' '}
-                    <dd className="inline dark:text-gray-400">{feature.description}</dd>
-                  </div>
+    <div className="flex flex-col lg:flex-row gap-12 max-w-[1200px] items-center p-4">
+        <div className="flex-1">
+            <h2 className="text-3xl font-bold mb-6">
+                Transform Your Business Operations
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-8">
+                Stop wrestling with spreadsheets and chasing payments. Our platform streamlines your entire client and invoice management workflow, letting you focus on growing your business.
+            </p>
+            <div className="space-y-4">
+                {benefits.map((benefit, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <Check className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <span className="text-gray-600 dark:text-gray-300">{benefit}</span>
+                    </div>
                 ))}
-              </dl>
             </div>
-          </div>
-          <OrbitingCirclesComponent />
         </div>
-      </div>
+        <div className="flex-1 relative">
+            <div className="relative rounded-lg overflow-hidden shadow-xl">
+                <Image
+                    src="/dashboard-preview.png"
+                    alt="Dashboard Preview"
+                    width={600}
+                    height={400}
+                    className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-transparent"></div>
+            </div>
+        </div>
     </div>
   )
 }
