@@ -1,40 +1,58 @@
 import { NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import config from "./config";
 
-let clerkMiddleware: (arg0: (auth: any, req: any) => any) => { (arg0: any): any; new(): any; }, createRouteMatcher;
-
-if (config.auth.enabled) {
-  try {
-    ({ clerkMiddleware, createRouteMatcher } = require("@clerk/nextjs/server"));
-  } catch (error) {
-    console.warn("Clerk modules not available. Auth will be disabled.");
-    config.auth.enabled = false;
-  }
-}
+// Create route matcher for protected routes
+const protectedRoutes = [
+  "/dashboard(.*)",
+  "/api/((?!webhooks).)*", // Protect all API routes except webhooks
+];
 
 const isProtectedRoute = config.auth.enabled
-  ? createRouteMatcher(["/dashboard(.*)"])
+  ? createRouteMatcher(protectedRoutes)
   : () => false;
 
-export default function middleware(req: any) {
-  if (config.auth.enabled) {
-    return clerkMiddleware(async (auth, req) => {
-      const resolvedAuth = await auth();
+// Middleware handler based on auth configuration
+const middlewareHandler = config.auth.enabled
+  ? clerkMiddleware((auth, req) => handleAuth(auth, req))
+  : (req) => NextResponse.next();
 
-      if (!resolvedAuth.userId && isProtectedRoute(req)) {
-        return resolvedAuth.redirectToSignIn();
-      } else {
-        return NextResponse.next();
-      }
-    })(req);
-  } else {
-    return NextResponse.next();
+async function handleAuth(auth: any, req: Request) {
+  const resolvedAuth = await auth();
+  
+  // Check for protected routes
+  if (!resolvedAuth.userId && isProtectedRoute(req)) {
+    return resolvedAuth.redirectToSignIn({
+      returnBackUrl: req.url,
+    });
   }
+
+  const response = NextResponse.next();
+
+  // Add security headers
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+  );
+
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains"
+    );
+  }
+
+  return response;
 }
 
-export const middlewareConfig = {
+export default middlewareHandler;
+
+export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/api/(.*)",
   ],
 };
