@@ -32,7 +32,7 @@ async function fetchApi<T>(
 
   const url = endpoint.startsWith('http')
     ? endpoint
-    : `${config.apiUrl}${endpoint}`;
+    : `${config.api.url}${endpoint}`;
 
   const fetchOptions: RequestInit = {
     method,
