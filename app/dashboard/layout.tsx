@@ -4,7 +4,7 @@ import DashboardTopNav from "./_components/dashbord-top-nav"
 import { isAuthorized } from "@/utils/data/user/isAuthorized"
 import { redirect } from "next/navigation"
 import { currentUser } from "@clerk/nextjs/server"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { LoadingSpinner } from "components/ui/loading-spinner"
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const user = await currentUser()
