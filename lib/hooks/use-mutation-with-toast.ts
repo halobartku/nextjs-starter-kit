@@ -1,13 +1,12 @@
-import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '../api-client';
+import { toast } from 'sonner';
 
 interface UseMutationWithToastOptions<TData, TVariables> {
-  invalidateQueries?: string[][];
-  successMessage?: string | ((data: TData) => string);
-  errorMessage?: string | ((error: ApiError) => string);
   onSuccess?: (data: TData) => void | Promise<void>;
-  onError?: (error: ApiError) => void | Promise<void>;
+  onError?: (error: Error) => void | Promise<void>;
+  successMessage?: string;
+  errorMessage?: string;
+  invalidateQueries?: string[][];
 }
 
 export function useMutationWithToast<TData, TVariables>(
@@ -16,10 +15,9 @@ export function useMutationWithToast<TData, TVariables>(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, ApiError, TVariables>({
+  return useMutation({
     mutationFn,
     onSuccess: async (data) => {
-      // Invalidate queries if specified
       if (options.invalidateQueries) {
         await Promise.all(
           options.invalidateQueries.map((query) =>
@@ -28,27 +26,17 @@ export function useMutationWithToast<TData, TVariables>(
         );
       }
 
-      // Show success toast
-      const message =
-        typeof options.successMessage === 'function'
-          ? options.successMessage(data)
-          : options.successMessage || 'Operation successful';
-      toast.success(message);
+      if (options.successMessage) {
+        toast.success(options.successMessage);
+      }
 
-      // Call onSuccess callback if provided
       if (options.onSuccess) {
         await options.onSuccess(data);
       }
     },
-    onError: async (error) => {
-      // Show error toast
-      const message =
-        typeof options.errorMessage === 'function'
-          ? options.errorMessage(error)
-          : options.errorMessage || error.message || 'An error occurred';
-      toast.error(message);
+    onError: async (error: Error) => {
+      toast.error(options.errorMessage || error.message || 'An error occurred');
 
-      // Call onError callback if provided
       if (options.onError) {
         await options.onError(error);
       }

@@ -1,27 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ApiError } from '../api-client';
 
 interface UseQueryWithToastOptions<TData> {
   enabled?: boolean;
-  errorMessage?: string | ((error: ApiError) => string);
+  errorMessage?: string;
+  retry?: boolean;
 }
 
 export function useQueryWithToast<TData>(
-  queryKey: any[],
+  queryKey: unknown[],
   queryFn: () => Promise<TData>,
   options: UseQueryWithToastOptions<TData> = {}
 ) {
-  return useQuery<TData, ApiError>({
+  return useQuery({
     queryKey,
     queryFn,
     enabled: options.enabled,
-    onError: (error) => {
-      const message =
-        typeof options.errorMessage === 'function'
-          ? options.errorMessage(error)
-          : options.errorMessage || error.message || 'Failed to load data';
-      toast.error(message);
+    retry: options.retry ?? false,
+    onError: (error: Error) => {
+      toast.error(options.errorMessage || error.message || 'An error occurred');
     },
   });
 }
