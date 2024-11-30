@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { DashboardSideBar } from './dashboard-side-bar'
+import DashboardSideBar from './dashboard-side-bar'
 import { UserNav } from './user-nav'
 import { useMediaQuery } from '@/hooks/use-media-query'
 
